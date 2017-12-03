@@ -27,6 +27,7 @@ class BSONObjBuilder: public BSONDocument
 
         /* TODO: Append BSON elements */
         BSONObjBuilder& append(BSONElement element);
+        BSONObjBuilder& append(const char *key, BSONDocument document);
 
         /* Append C-string (Must be null terminated ) */
         BSONObjBuilder& append(const char *key, char *value);

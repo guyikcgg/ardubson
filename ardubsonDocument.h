@@ -24,8 +24,12 @@ class BSONDocument
         bool _done;
 
         char* index(void);
+        bool done(void);
+        int len(void);
+        char* rawData(void);
         uint8_t appendNum(char value);
         uint8_t appendBSONElement(BSONElement element);
+        uint8_t appendBSONDocument(const char *key, BSONDocument document);
         uint8_t appendNum(uint32_t value);
         uint8_t appendNum(int32_t value);
         uint8_t appendNum(int64_t value);

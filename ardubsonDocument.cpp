@@ -15,6 +15,21 @@ char* BSONDocument::index(void)
     return (char *) _doc + _idx;
 }
 
+bool BSONDocument::done(void)
+{
+    return _done;
+}
+
+int BSONDocument::len(void)
+{
+  return _idx;
+}
+
+char* BSONDocument::rawData(void)
+{
+    return (char *) &_doc;
+}
+
 void BSONDocument::reset(void)
 {
     memset(&_doc, BSON_NULL_BYTE, BSON_DOC_SIZE);
@@ -42,6 +57,19 @@ uint8_t BSONDocument::appendBSONElement(BSONElement element)
     {
         memcpy(index(), element.rawData(), element.len());
         _idx += element.len();
+        ret = true;
+    }
+    return ret;
+}
+
+uint8_t BSONDocument::appendBSONDocument(const char *key, BSONDocument document)
+{
+    uint8_t ret = false;
+    if (document.done() && BSON_DOC_SIZE > (_idx + document.len() + strlen(key) + 1))
+    {
+        ret = appendStr(key);
+        memcpy(index(), document.rawData(), document.len());
+        _idx += document.len();
         ret = true;
     }
     return ret;

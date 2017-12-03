@@ -40,6 +40,17 @@ BSONObjBuilder& BSONObjBuilder::append(BSONElement element)
     return *this;
 }
 
+// Append BSON Document
+BSONObjBuilder& BSONObjBuilder::append(const char *key, BSONDocument document)
+{
+    uint8_t ret = appendNum((char) BSON_TYPE_OBJECT);
+    if (true == ret)
+    {
+        ret &= appendBSONDocument(key, document);
+    }
+    return *this;
+}
+
 // Append string (char*)
 BSONObjBuilder& BSONObjBuilder::append(const char *key, char *value)
 {
