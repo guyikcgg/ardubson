@@ -31,6 +31,7 @@ class BSONObject
 
         /* Get BSON Element by name */
         BSONElement getField(const char *key);
+        BSONObject getFieldObject(const char *fieldName);
 
         /* Print BSON document in JSON format */
         char* jsonString(void);

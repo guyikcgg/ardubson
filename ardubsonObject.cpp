@@ -27,6 +27,9 @@ char* BSONObject::rawData(void)
 int32_t BSONObject::len(void)
 {
     return *(int32_t *) &_objData;
+    // TODO Read complete field
+    // ardubsionConfig.h must be considered: it does
+    // not make sense to check 4 bytes if BSON_DOC_SIZE < 256
 }
 
 BSONElement BSONObject::getField(const char *fieldName)
@@ -99,6 +102,33 @@ BSONElement BSONObject::getField(const char *fieldName)
             else
             {
                 // Ignore incoming data
+                if (type == (char) BSON_TYPE_STRING)
+                {
+                    uint32_t sz = *(uint32_t *) &_objData[off];
+                    off += sizeof(uint32_t);
+                    off += sz;
+                }
+                else if (type == (char) BSON_TYPE_INT32)
+                {
+                    off += sizeof(int32_t);
+                }
+                else if (type == (char) BSON_TYPE_INT64)
+                {
+                    off += sizeof(int64_t);
+                }
+                else if (type == (char) BSON_TYPE_BOOLEAN)
+                {
+                    off += sizeof(char);
+                }
+                else if (type == (char) BSON_TYPE_OBJECT)
+                {
+                  // TODO Read complete field (4 bytes)
+                  uint32_t sz = *(uint32_t *) &_objData[off];
+                  off += sz;
+                }
+                // EOO
+                if ((uint32_t) BSON_EOO == _objData[off])
+                    break;
             }
             // break;
         }
@@ -109,6 +139,84 @@ BSONElement BSONObject::getField(const char *fieldName)
         }
     }
     return be.Fill(e_data, e_len);
+}
+
+BSONObject BSONObject::getFieldObject(const char *fieldName)
+{
+    char* e_data = NULL;
+    int e_len = 0;
+
+    uint32_t len = *(uint32_t *) &_objData;
+    uint32_t off = sizeof(uint32_t);
+
+    while ((off + 1) < len)
+    {
+        // Get next element data type
+        char type = *(char *) &_objData[off];
+        e_data = (char *) &_objData[off];
+        off++;
+        e_len = 1;
+        // Check data type range
+        if ((type > (char) BSON_MINKEY) && (type < (char) BSON_MAXKEY))
+        {
+            // Get element key
+            char *key = (char *) &_objData[off];
+            off += strlen(key) + 1;
+            e_len += strlen(key) + 1;
+            // Check key
+            if (strcmp(fieldName, key) == 0)
+            {
+                // Save value
+                if (type == (char) BSON_TYPE_OBJECT)
+                {
+                    e_data = (char *) &_objData[off];
+                    break;
+                }
+                // EOO
+                if ((uint32_t) BSON_EOO == _objData[off])
+                    break;
+            }
+            else
+            {
+                // Ignore incoming data
+                if (type == (char) BSON_TYPE_STRING)
+                {
+                    uint32_t sz = *(uint32_t *) &_objData[off];
+                    off += sizeof(uint32_t);
+                    off += sz;
+                }
+                else if (type == (char) BSON_TYPE_INT32)
+                {
+                    off += sizeof(int32_t);
+                }
+                else if (type == (char) BSON_TYPE_INT64)
+                {
+                    off += sizeof(int64_t);
+                }
+                else if (type == (char) BSON_TYPE_BOOLEAN)
+                {
+                    off += sizeof(char);
+                }
+                else if (type == (char) BSON_TYPE_OBJECT)
+                {
+                  // TODO Read complete field (4 bytes)
+                  uint32_t sz = *(uint32_t *) &_objData[off];
+                  off += sz;
+                }
+                // EOO
+                if ((uint32_t) BSON_EOO == _objData[off])
+                    break;
+            }
+            // break;
+        }
+        else
+        {
+            // Invalid type
+            break;
+        }
+    }
+    BSONObject bo(e_data);
+    return bo;
 }
 
 bool BSONObject::appendJSON(const char* data)
