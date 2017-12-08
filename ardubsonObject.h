@@ -21,7 +21,12 @@ class BSONObject
     public:
 
         /* Build BSON Object from binary data */
+        BSONObject(const char* data);
         BSONObject(char* data);
+        BSONObject(void);
+
+        /* Parse data (same as constructor) */
+        void parse(const char* data);
 
         /* API to BSON Object buffer */
         char* rawData(void);

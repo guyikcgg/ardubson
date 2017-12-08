@@ -8,7 +8,23 @@
 
 // Constructor /////////////////////////////////////////////////////////////////
 
+BSONObject::BSONObject(const char* data)
+{
+    parse(data);
+}
+
 BSONObject::BSONObject(char* data)
+{
+    parse((const char*) data);
+}
+
+BSONObject::BSONObject(void)
+{
+}
+
+// Public Methods //////////////////////////////////////////////////////////////
+
+void BSONObject::parse(const char* data)
 {
     int size = *(uint32_t *) data;
     if ((size >= 0) && (size <= BSON_BUFF_SIZE))
@@ -16,8 +32,6 @@ BSONObject::BSONObject(char* data)
         memcpy(_objData, data, size);
     }
 }
-
-// Public Methods //////////////////////////////////////////////////////////////
 
 char* BSONObject::rawData(void)
 {
@@ -145,6 +159,7 @@ BSONObject BSONObject::getFieldObject(const char *fieldName)
 {
     char* e_data = NULL;
     int e_len = 0;
+    BSONObject bo;
 
     uint32_t len = *(uint32_t *) &_objData;
     uint32_t off = sizeof(uint32_t);
@@ -215,7 +230,7 @@ BSONObject BSONObject::getFieldObject(const char *fieldName)
             break;
         }
     }
-    BSONObject bo(e_data);
+    bo.parse(e_data);
     return bo;
 }
 
